@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webcam Capture</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+
+body {
+  background-image: url('images.jpeg'); 
+  background-size: cover;
+  padding-top: 50px;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#video {
+  width: 100%;
+  display: none;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+#capturedImage {
+  max-width: 100%;
+  margin-top: 20px;
+  border-radius: 10px;
+  display: none;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  margin: 0 10px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#discardButton, #saveButton {
+  display: none;
+}
+
+</style>
+</head>
+<body>
+<div class="container">
+  <video id="video" autoplay></video>
+  <img id="capturedImage"> <br> 
+  <div>
+    <button id="toggleButton">Switch On Camera</button> 
+    <button id="goback">Go Back</button> 
+    <button id="captureButton" style="display: none;">Capture</button>
+    <button id="discardButton">Discard</button>
+    <button id="saveButton">Save</button>
+  </div>
+</div>
+<script>
+let videoStream;
+const video = document.getElementById('video');
+const toggleButton = document.getElementById('toggleButton');
+const captureButton = document.getElementById('captureButton');
+const discardButton = document.getElementById('discardButton');
+const saveButton = document.getElementById('saveButton');
+const capturedImageElement = document.getElementById('capturedImage');
+const goback = document.getElementById('goback'); 
+
+// Function to start the camera
+async function startCamera() {
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = videoStream;
+    video.style.display = 'block';
+    toggleButton.textContent = 'Switch Off Camera';
+    captureButton.style.display = 'inline-block';
+  } catch (err) {
+    console.error('Error accessing the camera: ', err);
+  }
+}
+
+// Function to stop the camera
+function stopCamera() {
+  if (videoStream) {
+    videoStream.getTracks().forEach(track => track.stop());
+    video.style.display = 'none';
+    toggleButton.textContent = 'Switch On Camera';
+    captureButton.style.display = 'none';
+    capturedImageElement.style.display = 'none';
+    discardButton.style.display = 'none';
+    saveButton.style.display = 'none';
+  }
+}
+
+// Toggle camera on/off
+toggleButton.addEventListener('click', () => {
+  if (toggleButton.textContent === 'Switch On Camera') {
+    startCamera();
+  } else {
+    stopCamera();
+  }
+});
+
+// Capture image
+captureButton.addEventListener('click', () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const context = canvas.getContext('2d');
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  capturedImageElement.src = canvas.toDataURL('image/png');
+  capturedImageElement.style.display = 'block';
+  discardButton.style.display = 'inline-block'; 
+  saveButton.style.display = 'inline-block';
+});
+
+// Discard captured image
+discardButton.addEventListener('click', () => {
+  capturedImageElement.src = '';
+  capturedImageElement.style.display = 'none';
+  discardButton.style.display = 'none';
+  saveButton.style.display = 'none';
+});
+
+// Save captured image (to download)
+saveButton.addEventListener('click', () => {
+  const imageURI = capturedImageElement.src;
+  const a = document.createElement('a');
+  a.href = imageURI;
+  a.download = 'captured_image.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+});
+
+goback.addEventListener ('click', () => {
+  window.history.back() ;
+})
+</script>
+</body>
+</html>
+

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signature Verification</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: url('static/images.jpeg');
+            background-size: cover;
+            padding-top: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .card {
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #007bff;
+            color: #fff;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        #dialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8); /* Transparent white background */
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Signature Verification</h3>
+            </div>
+            <div class="card-body">
+                <form id="uploadForm" action="/verify_signature" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="file">Upload Image:</label>
+                        <input type="file" class="form-control-file" id="file" name="file" accept="image/*" required>
+                        <button type="button" class="btn btn-secondary mt-2" id="discardButton">Discard</button>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload and Verify</button>
+                    <br> <br> 
+                    <button onclick="redirect()">Want to Use Camera</button>
+                </form>
+                <hr>
+                <img id="uploadedImage" src="#" alt="Uploaded Image" style="display: none;">
+            </div>
+        </div>
+        <div id="dialog">
+            <p id="resultMessage"></p>
+            <button type="button" class="btn btn-primary" onclick="closeDialog()">Close</button>
+        </div>
+    </div>
+    
+    <script>
+        function redirect() {
+            window.location.href = "static/camera.html" ;
+        }
+
+        function openDialog(message) {
+            document.getElementById('resultMessage').textContent = message;
+            document.getElementById('dialog').style.display = 'block';
+        }
+
+        function closeDialog() {
+            document.getElementById('dialog').style.display = 'none';
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+            const formData = new FormData(this);
+            fetch('/verify_signature', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                openDialog(data.result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        const fileInput = document.getElementById('file');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const discardButton = document.getElementById('discardButton');
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImage.src = e.target.result;
+                uploadedImage.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+
+        discardButton.addEventListener('click', () => {
+            fileInput.value = ''; 
+            uploadedImage.style.display = 'none'; 
+        });
+    </script>
+</body>
+</html>
+
